@@ -1,0 +1,90 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+typedef struct {
+    int process_id;     // Process ID
+    int arrival_time;   // Arrival time
+    int burst_time;     // Burst time (execution time)
+    int remaining_time; // Remaining time (used for preemption)
+    int priority;       // Priority of the process
+    int completion_time; // Completion time
+    int waiting_time;   // Waiting time
+    int turnaround_time; // Turnaround time
+} Process;
+
+// Function to calculate and display Preemptive Priority Scheduling results
+void preemptivePriorityScheduling(Process processes[], int n) {
+    int total_waiting_time = 0, total_turnaround_time = 0;
+    int current_time = 0; // Tracks the current time
+    int completed = 0;     // To track the number of completed processes
+    bool is_completed[n];  // Flag to check if process is completed
+
+    // Initialize is_completed array to false
+    for (int i = 0; i < n; i++) {
+        is_completed[i] = false;
+        processes[i].remaining_time = processes[i].burst_time;
+    }
+
+    // Run until all processes are completed
+    while (completed < n) {
+        int idx = -1;
+        int highest_priority = 1000; // A very high priority (lower number is higher priority)
+
+        // Find the process with the highest priority that has arrived and not yet completed
+        for (int i = 0; i < n; i++) {
+            if (processes[i].arrival_time <= current_time && !is_completed[i] && processes[i].priority < highest_priority) {
+                highest_priority = processes[i].priority;
+                idx = i;
+            }
+        }
+
+        if (idx != -1) {
+            // Execute the selected process
+            processes[idx].remaining_time--;
+            current_time++;
+
+            // If the process is completed
+            if (processes[idx].remaining_time == 0) {
+                processes[idx].completion_time = current_time;
+                processes[idx].turnaround_time = processes[idx].completion_time - processes[idx].arrival_time;
+                processes[idx].waiting_time = processes[idx].turnaround_time - processes[idx].burst_time;
+                total_waiting_time += processes[idx].waiting_time;
+                total_turnaround_time += processes[idx].turnaround_time;
+                is_completed[idx] = true;
+                completed++;
+            }
+        } else {
+            // If no process is ready to execute (idle time)
+            current_time++;
+        }
+    }
+
+    // Print the results
+    printf("\nProcess ID\tArrival Time\tBurst Time\tPriority\tCompletion Time\tTurnaround Time\tWaiting Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n",
+               processes[i].process_id,
+               processes[i].arrival_time,
+               processes[i].burst_time,
+               processes[i].priority,
+               processes[i].completion_time,
+               processes[i].turnaround_time,
+               processes[i].waiting_time);
+    }
+
+    // Calculate and print the average waiting time and turnaround time
+    printf("\nAverage Waiting Time: %.2f", (float)total_waiting_time / n);
+    printf("\nAverage Turnaround Time: %.2f", (float)total_turnaround_time / n);
+}
+
+int main() {
+    int n;
+
+    // Accept the number of processes
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    Process processes[n];
+
+    // Accept arrival time, burst time, and priority for each process
+    f
