@@ -1,0 +1,103 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define the maximum size of the file
+#define MAX_RECORDS 5
+#define MAX_RECORD_SIZE 100
+
+// Structure for a single block of the file
+struct Block {
+    char data[MAX_RECORD_SIZE];   // Store the data in the block
+    struct Block* next;           // Pointer to the next block
+};
+
+// Structure for the file, which contains pointers to the first and last blocks
+struct File {
+    struct Block* first;          // Pointer to the first block of the file
+    struct Block* last;           // Pointer to the last block of the file
+};
+
+// Function to initialize a new file
+void initialize_file(struct File* file) {
+    file->first = NULL;
+    file->last = NULL;
+}
+
+// Function to add a new record to the file (append to the linked list)
+void add_record(struct File* file, const char* record) {
+    struct Block* new_block = (struct Block*)malloc(sizeof(struct Block));
+
+    // Check for memory allocation failure
+    if (new_block == NULL) {
+        printf("Memory allocation failed!\n");
+        return;
+    }
+
+    // Store the record in the new block
+    strcpy(new_block->data, record);
+    new_block->next = NULL; // The new block's next pointer is NULL, as it will be the last block
+
+    // If the file is empty, initialize the first block
+    if (file->first == NULL) {
+        file->first = new_block;
+        file->last = new_block;
+    } else {
+        // Otherwise, append the new block to the last block
+        file->last->next = new_block;
+        file->last = new_block;
+    }
+}
+
+// Function to read all records in the file
+void read_file(struct File* file) {
+    struct Block* current = file->first;
+
+    if (current == NULL) {
+        printf("The file is empty.\n");
+        return;
+    }
+
+    printf("Reading file records:\n");
+    while (current != NULL) {
+        printf("%s\n", current->data);  // Print the data in the current block
+        current = current->next;        // Move to the next block
+    }
+}
+
+// Function to free the memory used by the file
+void free_file(struct File* file) {
+    struct Block* current = file->first;
+    struct Block* next;
+
+    while (current != NULL) {
+        next = current->next;    // Save the pointer to the next block
+        free(current);           // Free the current block
+        current = next;          // Move to the next block
+    }
+
+    file->first = NULL;
+    file->last = NULL;
+}
+
+int main() {
+    struct File file;
+
+    // Initialize the file
+    initialize_file(&file);
+
+    // Add some records to the file
+    add_record(&file, "Record 1: Employee details - John");
+    add_record(&file, "Record 2: Employee details - Alice");
+    add_record(&file, "Record 3: Employee details - Bob");
+    add_record(&file, "Record 4: Employee details - Charlie");
+    add_record(&file, "Record 5: Employee details - David");
+
+    // Read the file
+    read_file(&file);
+
+    // Free the memory used by the file
+    free_file(&file);
+
+    return 0;
+}
