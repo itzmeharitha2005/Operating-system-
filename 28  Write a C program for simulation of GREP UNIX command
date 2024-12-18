@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Function to simulate grep functionality
+void grep_pattern_in_file(const char *filename, const char *pattern) {
+    FILE *file = fopen(filename, "r");  // Open file for reading
+    if (file == NULL) {
+        perror("Unable to open file");
+        exit(1);
+    }
+
+    char line[1024];  // Buffer to hold each line from the file
+
+    while (fgets(line, sizeof(line), file)) {  // Read the file line by line
+        // Check if the pattern exists in the current line
+        if (strstr(line, pattern) != NULL) {
+            printf("%s", line);  // Print the matching line
+        }
+    }
+
+    fclose(file);  // Close the file after processing
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        printf("Usage: %s <pattern> <file>\n", argv[0]);
+        return 1;
+    }
+
+    const char *pattern = argv[1];  // The search pattern
+    const char *filename = argv[2];  // The file to search in
+
+    // Simulate grep by searching for the pattern in the file
+    grep_pattern_in_file(filename, pattern);
+
+    return 0;
+}
