@@ -1,0 +1,100 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define P 5 // Number of processes
+#define R 3 // Number of resources
+
+// Function to check if the system is in a safe state
+bool is_safe(int processes[], int avail[], int max[][R], int allot[][R]) {
+    int need[P][R];
+    int work[R];
+    bool finish[P] = {0};
+    int safe_seq[P];
+    int count = 0;
+
+    // Calculate the need matrix (Need = Max - Allocation)
+    for (int i = 0; i < P; i++) {
+        for (int j = 0; j < R; j++) {
+            need[i][j] = max[i][j] - allot[i][j];
+        }
+    }
+
+    // Initialize work array (Work = Available)
+    for (int i = 0; i < R; i++) {
+        work[i] = avail[i];
+    }
+
+    // Find the safe sequence
+    while (count < P) {
+        bool found = false;
+        for (int p = 0; p < P; p++) {
+            if (!finish[p]) {
+                int j;
+                // Check if all the resources needed by process p are available
+                for (j = 0; j < R; j++) {
+                    if (need[p][j] > work[j]) {
+                        break;
+                    }
+                }
+                // If all resources are available, the process can execute
+                if (j == R) {
+                    // Add allocated resources to work
+                    for (int k = 0; k < R; k++) {
+                        work[k] += allot[p][k];
+                    }
+                    safe_seq[count++] = p;
+                    finish[p] = 1;
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            // If no process can execute, system is in an unsafe state
+            return false;
+        }
+    }
+
+    // If we have found a safe sequence, print it
+    printf("System is in a safe state.\nSafe Sequence is: ");
+    for (int i = 0; i < P; i++) {
+        printf("P%d ", safe_seq[i]);
+    }
+    printf("\n");
+
+    return true;
+}
+
+int main() {
+    int processes[] = {0, 1, 2, 3, 4}; // Process IDs
+
+    // Available resources
+    int avail[] = {3, 3, 2};
+
+    // Maximum resources each process may need
+    int max[][R] = {
+        {7, 5, 3},
+        {3, 2, 2},
+        {9, 0, 2},
+        {2, 2, 2},
+        {4, 3, 3}
+    };
+
+    // Resources allocated to each process
+    int allot[][R] = {
+        {0, 1, 0},
+        {2, 0, 0},
+        {3, 0, 2},
+        {2, 1, 1},
+        {0, 0, 2}
+    };
+
+    // Check if the system is in a safe state
+    if (is_safe(processes, avail, max, allot)) {
+        printf("The system is in a safe state.\n");
+    } else {
+        printf("The system is not in a safe state.\n");
+    }
+
+    return 0;
+}
