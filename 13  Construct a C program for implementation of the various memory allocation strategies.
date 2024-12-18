@@ -1,0 +1,189 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MEMORY_SIZE 1000  // Size of the simulated memory
+
+// Structure to represent a memory block
+typedef struct Block {
+    int size;
+    int is_free;
+    struct Block *next;
+} Block;
+
+// Global pointer to the memory blocks
+Block *memory = NULL;
+
+// Function to initialize memory
+void initialize_memory() {
+    memory = (Block *)malloc(MEMORY_SIZE);
+    memory->size = MEMORY_SIZE;
+    memory->is_free = 1;  // The entire memory is initially free
+    memory->next = NULL;
+}
+
+// Function to print the current state of memory blocks
+void print_memory() {
+    Block *current = memory;
+    while (current != NULL) {
+        printf("Block: Size = %d, Status = %s\n", current->size, current->is_free ? "Free" : "Allocated");
+        current = current->next;
+    }
+}
+
+// Function to find the first free block that fits the size (First Fit strategy)
+Block *first_fit(int size) {
+    Block *current = memory;
+    while (current != NULL) {
+        if (current->is_free && current->size >= size) {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+// Function to find the best fit block (Best Fit strategy)
+Block *best_fit(int size) {
+    Block *current = memory;
+    Block *best_block = NULL;
+    while (current != NULL) {
+        if (current->is_free && current->size >= size) {
+            if (best_block == NULL || current->size < best_block->size) {
+                best_block = current;
+            }
+        }
+        current = current->next;
+    }
+    return best_block;
+}
+
+// Function to find the worst fit block (Worst Fit strategy)
+Block *worst_fit(int size) {
+    Block *current = memory;
+    Block *worst_block = NULL;
+    while (current != NULL) {
+        if (current->is_free && current->size >= size) {
+            if (worst_block == NULL || current->size > worst_block->size) {
+                worst_block = current;
+            }
+        }
+        current = current->next;
+    }
+    return worst_block;
+}
+
+// Function to find the next fit block (Next Fit strategy)
+Block *next_fit(int size) {
+    static Block *last_allocated = NULL;
+    Block *current = (last_allocated == NULL) ? memory : last_allocated->next;
+    while (current != NULL) {
+        if (current->is_free && current->size >= size) {
+            last_allocated = current;
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+// Function to allocate memory based on the chosen strategy
+void *allocate_memory(int size, int strategy) {
+    Block *block = NULL;
+    switch (strategy) {
+        case 1:
+            block = first_fit(size);
+            break;
+        case 2:
+            block = best_fit(size);
+            break;
+        case 3:
+            block = worst_fit(size);
+            break;
+        case 4:
+            block = next_fit(size);
+            break;
+        default:
+            printf("Invalid strategy!\n");
+            return NULL;
+    }
+
+    if (block == NULL) {
+        printf("Not enough memory available to allocate %d bytes\n", size);
+        return NULL;
+    }
+
+    // If a suitable block is found, mark it as allocated
+    block->is_free = 0;
+
+    // Return a pointer to the memory block after the block structure
+    return (void *)((char *)block + sizeof(Block));
+}
+
+// Function to free memory at the given pointer
+void free_memory(void *ptr) {
+    Block *block = (Block *)((char *)ptr - sizeof(Block));
+    block->is_free = 1;
+}
+
+// Main function to test the memory allocation strategies
+int main() {
+    int strategy, size;
+    void *ptr1, *ptr2, *ptr3;
+
+    // Initialize the memory
+    initialize_memory();
+
+    // Display initial memory status
+    printf("Initial memory:\n");
+    print_memory();
+
+    // Test different allocation strategies
+    printf("\nChoose a memory allocation strategy:\n");
+    printf("1. First Fit\n");
+    printf("2. Best Fit\n");
+    printf("3. Worst Fit\n");
+    printf("4. Next Fit\n");
+    printf("Enter strategy (1-4): ");
+    scanf("%d", &strategy);
+
+    // Try to allocate memory using the chosen strategy
+    printf("Enter size to allocate (in bytes): ");
+    scanf("%d", &size);
+
+    // Allocate memory
+    ptr1 = allocate_memory(size, strategy);
+    if (ptr1 != NULL) {
+        printf("Memory of size %d allocated successfully.\n", size);
+    }
+
+    // Allocate more memory
+    printf("Enter size to allocate (in bytes) for second allocation: ");
+    scanf("%d", &size);
+    ptr2 = allocate_memory(size, strategy);
+    if (ptr2 != NULL) {
+        printf("Memory of size %d allocated successfully.\n", size);
+    }
+
+    // Allocate again
+    printf("Enter size to allocate (in bytes) for third allocation: ");
+    scanf("%d", &size);
+    ptr3 = allocate_memory(size, strategy);
+    if (ptr3 != NULL) {
+        printf("Memory of size %d allocated successfully.\n", size);
+    }
+
+    // Display memory status after allocation
+    printf("\nMemory status after allocations:\n");
+    print_memory();
+
+    // Free the allocated memory
+    free_memory(ptr1);
+    free_memory(ptr2);
+    free_memory(ptr3);
+
+    // Display memory status after freeing
+    printf("\nMemory status after freeing the memory:\n");
+    print_memory();
+
+    return 0;
+}
