@@ -1,0 +1,5 @@
+chmod u+x file.txt     # Add execute permission for the user (owner)
+chmod g-w file.txt     # Remove write permission for the group
+chmod o+r file.txt     # Add read permission for others
+chmod 755 file.txt     # Set permissions to rwx for user, rx for group and others
+chmod 644 file.txt     # Set permissions to rw for user, r for group and other
