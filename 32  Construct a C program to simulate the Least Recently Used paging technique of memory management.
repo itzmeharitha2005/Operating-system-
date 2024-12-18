@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define FRAME_COUNT 3  // Number of frames in memory
+
+// Function to simulate LRU page replacement
+void lru_page_replacement(int pages[], int page_count) {
+    int frame[FRAME_COUNT];  // Array to store the pages in memory
+    int page_faults = 0;     // To count the number of page faults
+    int i, j;
+
+    // Initialize the frame with -1 (indicating empty frames)
+    for (i = 0; i < FRAME_COUNT; i++) {
+        frame[i] = -1;
+    }
+
+    printf("Page Reference String: ");
+    for (i = 0; i < page_count; i++) {
+        printf("%d ", pages[i]);
+    }
+    printf("\n");
+
+    // Simulate the LRU page replacement
+    for (i = 0; i < page_count; i++) {
+        int page = pages[i];
+        int page_found = 0;
+        int lru_index = -1;
+
+        // Check if the page is already in one of the frames
+        for (j = 0; j < FRAME_COUNT; j++) {
+            if (frame[j] == page) {
+                page_found = 1;  // Page is already in memory, no page fault
+                break;
+            }
+        }
+
+        // If the page is not in memory, a page fault occurs
+        if (!page_found) {
+            page_faults++;
+
+            // Find the least recently used (LRU) page by scanning the frame
+            // Replace the page at the position of the least recently used one
+            // For simplicity, here we assume that the page not found is replaced
+            lru_index = 0;
+
+            // Replace the LRU page (in this simple implementation)
+            frame[lru_index] = page;
+
+            // Display the current state of memory
+            printf("Memory after page %d:\n", page);
+            for (j = 0; j < FRAME_COUNT; j++) {
+                if (frame[j] != -1) {
+                    printf(" %d ", frame[j]);
+                } else {
+                    printf(" - ");
+                }
+            }
+            printf("\n");
+        }
+    }
+
+    printf("\nTotal Page Faults: %d\n", page_faults);
+}
+
+int main() {
+    // Example page reference string
+    int pages[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 3};
+    int page_count = sizeof(pages) / sizeof(pages[0]);
+
+    lru_page_replacement(pages, page_count);
+
+    return 0;
+}
