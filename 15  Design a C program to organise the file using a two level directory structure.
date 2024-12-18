@@ -1,0 +1,68 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_SUBDIRECTORIES 5
+#define MAX_FILES_IN_SUBDIR 10
+#define FILENAME_SIZE 50
+#define MAX_FILE_SIZE 1000
+
+// Structure to represent a file
+typedef struct {
+    char name[FILENAME_SIZE];
+    int size;  // Size of the file in bytes
+} File;
+
+// Structure to represent a subdirectory
+typedef struct {
+    char name[FILENAME_SIZE];
+    File files[MAX_FILES_IN_SUBDIR];
+    int file_count;  // Number of files in the subdirectory
+} SubDirectory;
+
+// Structure to represent the root directory
+typedef struct {
+    SubDirectory subdirectories[MAX_SUBDIRECTORIES];
+    int subdir_count;  // Number of subdirectories in the root directory
+} Directory;
+
+// Function to initialize the root directory
+void initialize_directory(Directory* dir) {
+    dir->subdir_count = 0;
+}
+
+// Function to add a subdirectory to the root directory
+void add_subdirectory(Directory* dir, const char* subdir_name) {
+    if (dir->subdir_count < MAX_SUBDIRECTORIES) {
+        strcpy(dir->subdirectories[dir->subdir_count].name, subdir_name);
+        dir->subdirectories[dir->subdir_count].file_count = 0;  // No files initially
+        dir->subdir_count++;
+        printf("Subdirectory '%s' added.\n", subdir_name);
+    } else {
+        printf("Cannot add more subdirectories. Limit reached.\n");
+    }
+}
+
+// Function to add a file to a specific subdirectory
+void add_file(Directory* dir, const char* subdir_name, const char* file_name, int size) {
+    int i, found = 0;
+    
+    // Find the subdirectory
+    for (i = 0; i < dir->subdir_count; i++) {
+        if (strcmp(dir->subdirectories[i].name, subdir_name) == 0) {
+            found = 1;
+            if (dir->subdirectories[i].file_count < MAX_FILES_IN_SUBDIR) {
+                // Add the file to the subdirectory
+                strcpy(dir->subdirectories[i].files[dir->subdirectories[i].file_count].name, file_name);
+                dir->subdirectories[i].files[dir->subdirectories[i].file_count].size = size;
+                dir->subdirectories[i].file_count++;
+                printf("File '%s' added to subdirectory '%s'.\n", file_name, subdir_name);
+            } else {
+                printf("Cannot add more files to subdirectory '%s'. Limit reached.\n", subdir_name);
+            }
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Subdirectory '%s' not found.\
