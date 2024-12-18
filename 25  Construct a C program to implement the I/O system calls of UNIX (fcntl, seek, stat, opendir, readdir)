@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <string.h>
+
+// Function to demonstrate fcntl system call
+void demonstrate_fcntl(int fd) {
+    int flags;
+    flags = fcntl(fd, F_GETFL);  // Get file status flags
+    if (flags == -1) {
+        perror("fcntl get failed");
+        return;
+    }
+
+    printf("File descriptor flags: %d\n", flags);
+}
+
+// Function to demonstrate lseek system call
+void demonstrate_lseek(int fd) {
+    off_t offset;
+    offset = lseek(fd, 0, SEEK_END);  // Move to the end of the file
+    if (offset == -1) {
+        perror("lseek failed");
+        return;
+    }
+
+    printf("Current file offset: %ld\n", offset);
+}
+
+// Function to demonstrate stat system call
+void demonstrate_stat(const char *filename) {
+    struct stat fileStat;
+    if (stat(filename, &fileStat) == -1) {
+        perror("stat failed");
+        return;
+    }
+
+    printf("File Size: %ld bytes\n", fileStat.st_size);
+    printf("Number of Blocks Allocated: %ld\n", fileStat.st_blocks);
+    printf("File Permissions: %o\n", fileStat.st_mode & 0777);
+    printf("Last Access Time: %ld\n", fileStat.st_atime);
+    printf("Last Modification Time: %ld\n", fileStat.st_mtime);
+    printf("Last Status Change Time: %ld\n", fileStat.st_ctime);
+}
+
+// Function to demonstrate opendir and readdir system calls
+void demonstrate_opendir_readdir(const char *dir_name) {
+    DIR *dir;
+    struct dirent *entry;
+
+    dir = opendir(dir_name);
+    if (dir == NULL) {
+        perror("opendir failed");
+        return;
+    }
+
+    printf("Contents of the directory '%s':\n", dir_name);
+    while ((entry = readdir(dir)) != NULL) {
+        printf("%s\n", entry->d_name);  // Print directory entry name
+    }
+
+    closedir(dir);
+}
+
+int main() {
+    const char *file_name = "example.txt";
+    const char *dir_name = ".";  // Current directory
+
+    // 1. Demonstrate fcntl system call
+    int fd = open(file_name, O_CREAT | O_RDWR, 0644);
+    if (fd == -1) {
+        perror("File open failed");
+        exit(1);
+    }
+
+    demonstrate_fcntl(fd);
+
+    // 2. Demonstrate lseek system call
+    if (lseek(fd, 0, SEEK_SET) == -1) {  // Move to the beginning of the file
+        perror("lseek failed");
+        close(fd);
+        exit(1);
+    }
+    demonstrate_lseek(fd);
+
+    // 3. Write something into the file to update the file size
+    const char *text = "This is a demonstration of UNIX system calls.";
+    if (write(fd, text, strlen(text)) == -1) {
+        perror("Write failed");
+        close(fd);
+        exit(1);
+    }
+
+    // 4. Demonstrate stat system call
+    demonstrate_stat(file_name);
+
+    // 5. Close the file after operations
+    close(fd);
+
+    // 6. Demonstrate opendir and readdir system calls
+    demonstrate_opendir_readdir(dir_name);
+
+    return 0;
+}
