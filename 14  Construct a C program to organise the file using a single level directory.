@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+// Define the maximum number of files that can be stored in the directory
+#define MAX_FILES 10
+#define FILENAME_SIZE 50
+
+// Structure to represent a file
+typedef struct {
+    char name[FILENAME_SIZE];
+    int size;  // Size of the file in bytes
+} File;
+
+// Directory structure to hold all files
+typedef struct {
+    File files[MAX_FILES];
+    int count;  // Number of files currently in the directory
+} Directory;
+
+// Function to initialize the directory
+void initialize_directory(Directory* dir) {
+    dir->count = 0;
+}
+
+// Function to add a file to the directory
+void add_file(Directory* dir, const char* name, int size) {
+    if (dir->count < MAX_FILES) {
+        // Add file details to the directory
+        strcpy(dir->files[dir->count].name, name);
+        dir->files[dir->count].size = size;
+        dir->count++;
+        printf("File '%s' added to the directory.\n", name);
+    } else {
+        printf("Directory is full. Cannot add more files.\n");
+    }
+}
+
+// Function to remove a file from the directory by name
+void remove_file(Directory* dir, const char* name) {
+    int i, found = 0;
+    
+    // Search for the file in the directory
+    for (i = 0; i < dir->count; i++) {
+        if (strcmp(dir->files[i].name, name) == 0) {
+            found = 1;
+            break;
+        }
+    }
+
+    if (found) {
+        // Shift remaining files to remove the file from the directory
+        for (int j = i; j < dir->count - 1; j++) {
+            dir->files[j] = dir->files[j + 1];
+        }
+        dir->count--;
+        printf("File '%s' removed from the directory.\n", name);
+    } else {
+        printf("File '%s' not found in the directory.\n", name);
+    }
+}
+
+// Function to display the files in the directory
+void display_directory(Directory* dir) {
+    if (dir->count == 0) {
+        printf("Directory is empty.\n");
+        return;
+    }
+
+    printf("Directory contents:\n");
+    for (int i = 0; i < dir->count; i++) {
+        printf("File Name: %s, Size: %d bytes\n", dir->files[i].name, dir->files[i].size);
+    }
+}
+
+// Main function to demonstrate the directory operations
+int main() {
+    Directory dir;
+    initialize_directory(&dir);
+    
+    int choice;
+    char filename[FILENAME_SIZE];
+    int filesize;
+
+    while (1) {
+        printf("\n1. Add a File\n");
+        printf("2. Remove a File\n");
+        printf("3. Display Directory\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                // Add a file to the directory
+                printf("Enter the file name: ");
+                scanf("%s", filename);
+                printf("Enter the file size (in bytes): ");
+                scanf("%d", &filesize);
+                add_file(&dir, filename, filesize);
+                break;
+
+            case 2:
+                // Remove a file from the directory
+                printf("Enter the file name to remove: ");
+                scanf("%s", filename);
+                remove_file(&dir, filename);
+                break;
+
+            case 3:
+                // Display the contents of the directory
+                displa
