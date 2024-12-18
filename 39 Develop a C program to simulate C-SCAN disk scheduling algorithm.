@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void cscan(int *requests, int num_requests, int initial_position, int disk_size) {
+    int i, total_seek_time = 0;
+    int distance, cur_track;
+
+    // Sort the requests in increasing order
+    for (i = 0; i < num_requests - 1; i++) {
+        for (int j = i + 1; j < num_requests; j++) {
+            if (requests[i] > requests[j]) {
+                // Swap the values
+                int temp = requests[i];
+                requests[i] = requests[j];
+                requests[j] = temp;
+            }
+        }
+    }
+
+    // Calculate total seek time for C-SCAN
+    int left[num_requests], right[num_requests];
+    int left_index = 0, right_index = 0;
+
+    // Partition the requests into left and right of the initial position
+    for (i = 0; i < num_requests; i++) {
+        if (requests[i] < initial_position) {
+            left[left_index++] = requests[i];
+        } else {
+            right[right_index++] = requests[i];
+        }
+    }
+
+    // Seek the right side (from initial position to the farthest right)
+    for (i = 0; i < right_index; i++) {
+        cur_track = right[i];
+        distance = abs(cur_track - initial_position);
+        total_seek_time += distance;
+        initial_position = cur_track;
+    }
+
+    // Move to the last track and return to the first track
+    total_seek_time += (disk_size - 1 - initial_position);  // From current position to the last track
+    initial_position = 0;  // Jump to the first track
+
+    // Seek the left side (from first track to the farthest left)
+    for (i = left_index - 1; i >= 0; i--) {
+        cur_track = left[i];
+        distance = abs(cur_track - initial_position);
+        total_seek_time += distance;
+        initial_position = cur_track;
+    }
+
+    // Output the total seek time
+    printf("Total Seek Time: %d\n", total_seek_time);
+}
+
+int main() {
+    int num_requests, disk_size, initial_position;
+
+    // Input the number of disk requests
+    printf("Enter the number of disk requests: ");
+    scanf("%d", &num_requests);
+
+    // Input disk requests
+    int requests[num_requests];
+    printf("Enter the disk requests (track numbers):\n");
+    for (int i = 0; i < num_requests; i++) {
+        scanf("%d", &requests[i]);
+    }
+
+    // Input disk size
+    printf("Enter the disk size (total number of tracks): ");
+    scanf("%d", &disk_size);
+
+    // Input the initial position of the disk head
+    printf("Enter the initial position of the disk head: ");
+    scanf("%d", &initial_position);
+
+    // Call the C-SCAN function to calculate total seek time
+    cscan(requests, num_requests, initial_position, disk_size);
+
+    return 0;
+}
