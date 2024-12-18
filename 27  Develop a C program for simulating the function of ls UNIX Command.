@@ -1,0 +1,68 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <unistd.h>
+
+// Function to print the file permissions in a human-readable format
+void print_permissions(mode_t mode) {
+    char permissions[11] = "----------";
+    permissions[0] = (S_ISDIR(mode)) ? 'd' : '-';
+    permissions[1] = (mode & S_IRUSR) ? 'r' : '-';
+    permissions[2] = (mode & S_IWUSR) ? 'w' : '-';
+    permissions[3] = (mode & S_IXUSR) ? 'x' : '-';
+    permissions[4] = (mode & S_IRGRP) ? 'r' : '-';
+    permissions[5] = (mode & S_IWGRP) ? 'w' : '-';
+    permissions[6] = (mode & S_IXGRP) ? 'x' : '-';
+    permissions[7] = (mode & S_IROTH) ? 'r' : '-';
+    permissions[8] = (mode & S_IWOTH) ? 'w' : '-';
+    permissions[9] = (mode & S_IXOTH) ? 'x' : '-';
+    printf("%s ", permissions);
+}
+
+// Function to list the contents of the directory
+void list_directory(const char *dir_name) {
+    DIR *dir;
+    struct dirent *entry;
+    struct stat file_stat;
+    char file_path[1024];
+
+    dir = opendir(dir_name);
+    if (dir == NULL) {
+        perror("opendir failed");
+        exit(1);
+    }
+
+    printf("Listing contents of: %s\n", dir_name);
+
+    while ((entry = readdir(dir)) != NULL) {
+        snprintf(file_path, sizeof(file_path), "%s/%s", dir_name, entry->d_name);
+        
+        // Get file status using stat system call
+        if (stat(file_path, &file_stat) == -1) {
+            perror("stat failed");
+            continue;
+        }
+
+        // Print the file permissions
+        print_permissions(file_stat.st_mode);
+
+        // Print the file name
+        printf("%s\n", entry->d_name);
+    }
+
+    closedir(dir);  // Close the directory stream
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        // If no directory is provided, list the current directory
+        list_directory(".");
+    } else {
+        // If a directory is provided, list that directory
+        list_directory(argv[1]);
+    }
+
+    return 0;
+}
