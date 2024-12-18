@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+// Global variable to store the thread result
+int thread_result = 0;
+
+// Thread function to simulate some work
+void* thread_function(void* arg) {
+    int* id = (int*)arg;
+    printf("Thread %d started\n", *id);
+    // Simulate some work by sleeping for 2 seconds
+    sleep(2);
+    thread_result = *id * 2;  // Modify thread_result
+    printf("Thread %d finished. Result = %d\n", *id, thread_result);
+    pthread_exit(NULL);  // Terminate the thread
+}
+
+int main() {
+    pthread_t thread1, thread2;
+    int id1 = 1, id2 = 2;
+    int result1, result2;
+
+    // Demonstrating Thread Creation
+    if (pthread_create(&thread1, NULL, thread_function, (void*)&id1) != 0) {
+        perror("Thread creation failed");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_create(&thread2, NULL, thread_function, (void*)&id2) != 0) {
+        perror("Thread creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Demonstrating Thread Join
+    pthread_join(thread1, (void**)&result1);  // Wait for thread1 to finish
+    pthread_join(thread2, (void**)&result2);  // Wait for thread2 to finish
+
+    printf("Main thread: Both threads have finished.\n");
+
+    // Demonstrating Thread Equal
+    if (pthread_equal(thread1, thread2)) {
+        printf("Both threads are the same.\n");
+    } else {
+        printf("Threads are different.\n");
+    }
+
+    // Demonstrating Thread Exit
+    printf("Main thread exiting.\n");
+    pthread_exit(NULL);  // Terminate the main thread explicitly
+
+    return 0;
+}
