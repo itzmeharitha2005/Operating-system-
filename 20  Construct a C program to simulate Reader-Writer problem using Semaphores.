@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define NUM_READERS 5
+#define NUM_WRITERS 2
+
+// Shared resource
+int shared_data = 0;
+
+// Semaphores for synchronization
+sem_t mutex;  // Mutex to control access to the reader count
+sem_t write_lock;  // Semaphore to allow writers exclusive access
+int read_count = 0;  // Counter to track the number of readers
+
+// Reader function
+void* reader(void* arg) {
+    int id = *((int*)arg);
+
+    // Readers want to read
+    sem_wait(&mutex);  // Enter critical section
+    read_count++;  // Increment reader count
+    if (read_count == 1) {
+        sem_wait(&write_lock);  // First reader blocks writers
+    }
+    sem_post(&mutex);  // Exit critical section
+
+    // Reading the shared resource
+    printf("Reader %d is reading shared_data: %d\n", id, shared_data);
+    sleep(1);  // Simulate reading time
+
+    sem_wait(&mutex);  // Enter critical section
+    read_count--;  // Decrement reader count
+    if (read_count == 0) {
+        sem_post(&write_lock);  // Last reader releases the writer lock
+    }
+    sem_post(&mutex);  // Exit critical section
+
+    return NULL;
+}
+
+// Writer function
+void* writer(void* arg) {
+    int id = *((int*)arg);
+
+    // Writers want to write
+    sem_wait(&write_lock);  // Ensure exclusive access to the resource
+
+    // Writing to the shared resource
+    shared_data = rand() % 100;  // Randomly modify shared data
+    printf("Writer %d is writing shared_data: %d\n", id, shared_data);
+    sleep(2);  // Simulate writing time
+
+    sem_post(&write_lock);  // Release the write lock
+
+    return NULL;
+}
+
+int main() {
+    pthread_t readers[NUM_READERS], writers[NUM_WRITERS];
+    int reader_ids[NUM_READERS], writer_ids[NUM_WRITERS];
+
+    // Initialize semaphores
+    sem_init(&mutex, 0, 1);  // Initialize mutex to 1 (binary semaphore)
+    sem_init(&write_lock, 0, 1);  // Initialize write_lock to 1 (binary semaphore)
+
+    // Create reader threads
+    for (int i = 0; i < NUM_READERS; i++) {
+        reader_ids[i] = i + 1;
+        pthread_create(&readers[i], NULL, reader, (void*)&reader_ids[i]);
+    }
+
+    // Create writer threads
+    for (int i = 0; i < NUM_WRITERS; i++) {
+        writer_ids[i] = i + 1;
+        pthread_create(&writers[i], NULL, writer, (void*)&writer_ids[i]);
+    }
+
+    // Wait for all threads to finish
+    for (int i = 0; i < NUM_READERS; i++) {
+        pthread_join(readers[i], NULL);
+    }
+    for (int i = 0; i < NUM_WRITERS; i++) {
+        pthread_join(writers[i], NULL);
+    }
+
+    // Destroy semaphores
+    sem_destroy(&mutex);
+    sem_destroy(&write_lock);
+
+    return 0;
+}
