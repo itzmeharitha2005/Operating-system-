@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <unistd.h>
+
+#define MSG_KEY 1234  // Message queue key
+#define MAX_TEXT 100  // Maximum text length for message
+
+// Structure for message queue
+struct message {
+    long msg_type;    // Message type
+    char msg_text[MAX_TEXT];  // Message content
+};
+
+int main() {
+    int msgid;
+    struct message msg;
+
+    // Create a message queue with read and write permissions for user
+    msgid = msgget(MSG_KEY, 0666 | IPC_CREAT);
+    if (msgid == -1) {
+        perror("msgget failed");
+        exit(1);
+    }
+
+    // Producer: sending a message to the queue
+    printf("Producer: Enter a number to produce: ");
+    fgets(msg.msg_text, MAX_TEXT, stdin);  // Read user input into the message
+    msg.msg_type = 1;  // Assign message type (can be used for prioritizing messages)
+
+    // Send the message to the queue
+    if (msgsnd(msgid, &msg, sizeof(msg.msg_text), 0) == -1) {
+        perror("msgsnd failed");
+        exit(1);
+    }
+    printf("Producer: Produced value: %s\n", msg.msg_text);
+
+    return 0;
+}
