@@ -1,0 +1,41 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+// Define a function that each thread will execute
+void* print_numbers(void* arg) {
+    int n = *((int*)arg);  // Get the number from the argument
+    for (int i = 1; i <= n; i++) {
+        printf("Thread %ld: %d\n", pthread_self(), i);
+    }
+    pthread_exit(NULL);  // Exit the thread
+}
+
+int main() {
+    pthread_t threads[2];  // Array to hold thread identifiers
+    int nums[2] = {5, 3};  // Number of iterations for each thread
+
+    // Create the first thread
+    if (pthread_create(&threads[0], NULL, print_numbers, (void*)&nums[0]) != 0) {
+        perror("pthread_create failed for thread 1");
+        exit(1);
+    }
+
+    // Create the second thread
+    if (pthread_create(&threads[1], NULL, print_numbers, (void*)&nums[1]) != 0) {
+        perror("pthread_create failed for thread 2");
+        exit(1);
+    }
+
+    // Wait for the threads to finish
+    for (int i = 0; i < 2; i++) {
+        if (pthread_join(threads[i], NULL) != 0) {
+            perror("pthread_join failed");
+            exit(1);
+        }
+    }
+
+    printf("All threads completed successfully!\n");
+
+    return 0;
+}
