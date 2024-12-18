@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+typedef struct {
+    int process_id;     // Process ID
+    int arrival_time;   // Arrival time
+    int burst_time;     // Burst time (execution time)
+    int completion_time; // Completion time
+    int waiting_time;   // Waiting time
+    int turnaround_time; // Turnaround time
+} Process;
+
+// Function to calculate and display Non-Preemptive SJF results
+void nonPreemptiveSJF(Process processes[], int n) {
+    int total_waiting_time = 0, total_turnaround_time = 0;
+    int current_time = 0; // Tracks the current time
+    bool is_completed[n];  // Flag to check if process is completed
+
+    // Initialize is_completed array to false
+    for (int i = 0; i < n; i++) {
+        is_completed[i] = false;
+    }
+
+    // Sort processes by burst time (ascending order)
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (processes[i].burst_time > processes[j].burst_time) {
+                // Swap the processes[i] and processes[j]
+                Process temp = processes[i];
+                processes[i] = processes[j];
+                processes[j] = temp;
+            }
+        }
+    }
+
+    // Execute processes in the order of increasing burst time
+    for (int i = 0; i < n; i++) {
+        if (current_time < processes[i].arrival_time) {
+            // If no process has arrived yet, jump to the arrival time of the next process
+            current_time = processes[i].arrival_time;
+        }
+
+        processes[i].completion_time = current_time + processes[i].burst_time;
+        processes[i].turnaround_time = processes[i].completion_time - processes[i].arrival_time;
+        processes[i].waiting_time = processes[i].turnaround_time - processes[i].burst_time;
+
+        total_waiting_time += processes[i].waiting_time;
+        total_turnaround_time += processes[i].turnaround_time;
+
+        // Update current time to the completion time of the current process
+        current_time = processes[i].completion_time;
+    }
+
+    // Print the results
+    printf("\nProcess ID\tArrival Time\tBurst Time\tCompletion Time\tTurnaround Time\tWaiting Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n",
+               processes[i].process_id,
+               processes[i].arrival_time,
+               processes[i].burst_time,
+               processes[i].completion_time,
+               processes[i].turnaround_time,
+               processes[i].waiting_time);
+    }
+
+  
