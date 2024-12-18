@@ -1,0 +1,48 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_RECORDS 10     // Maximum number of records in the file
+#define RECORD_SIZE 100    // Maximum size of each record (in characters)
+
+// Function to simulate sequential file allocation
+void read_file_records(char file[][RECORD_SIZE], int record_count, int record_to_read) {
+    if (record_to_read > record_count || record_to_read < 1) {
+        printf("Invalid record number.\n");
+        return;
+    }
+
+    printf("\nReading file records sequentially...\n");
+
+    // Simulate reading all previous records first (sequential access)
+    for (int i = 0; i < record_to_read; i++) {
+        printf("Record %d: %s\n", i + 1, file[i]);
+    }
+}
+
+int main() {
+    // Simulating the file with a few records
+    char file[MAX_RECORDS][RECORD_SIZE] = {
+        "Record 1: Employee details - John",
+        "Record 2: Employee details - Alice",
+        "Record 3: Employee details - Bob",
+        "Record 4: Employee details - Charlie",
+        "Record 5: Employee details - David",
+        "Record 6: Employee details - Eve",
+        "Record 7: Employee details - Frank",
+        "Record 8: Employee details - Grace",
+        "Record 9: Employee details - Helen",
+        "Record 10: Employee details - Isaac"
+    };
+
+    int record_count = 10;
+    int record_to_read;
+
+    printf("Enter the record number you want to access (1 to %d): ", record_count);
+    scanf("%d", &record_to_read);
+
+    // Simulate reading the record sequentially
+    read_file_records(file, record_count, record_to_read);
+
+    return 0;
+}
