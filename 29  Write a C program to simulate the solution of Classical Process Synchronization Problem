@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define BUFFER_SIZE 5
+
+// Shared buffer and associated variables
+int buffer[BUFFER_SIZE];
+int in = 0;  // Index for the producer to insert an item
+int out = 0; // Index for the consumer to remove an item
+
+// Semaphores for synchronization
+sem_t empty;  // Keeps track of empty slots in the buffer
+sem_t full;   // Keeps track of filled slots in the buffer
+sem_t mutex;  // Ensures mutual exclusion when accessing the buffer
+
+// Producer function
+void* producer(void* arg) {
+    int item;
+    while (1) {
+        item = rand() % 100;  // Generate a random item (for demonstration)
+        sem_wait(&empty);  // Decrease the empty slots count
+        sem_wait(&mutex);  // Enter critical section
+
+        // Insert the item into the buffer
+        buffer[in] = item;
+        printf("Produced: %d at index %d\n", item, in);
+        in = (in + 1) % BUFFER_SIZE;  // Circular buffer
+
+        sem_post(&mutex);  // Leave critical section
+        sem_post(&full);   // Increase the full slots count
+
+        sleep(1);  // Simulate work
+    }
+}
+
+// Consumer function
+void* consumer(void* arg) {
+    int item;
+    while (1) {
+        sem_wait(&full);  // Decrease the full slots count
+        sem_wait(&mutex); // Enter critical section
+
+        // Consume the item from the buffer
+        item = buffer[out];
+        printf("Consumed: %d from index %d\n", item, out);
+        out = (out + 1) % BUFFER_SIZE;  // Circular buffer
+
+        sem_post(&mutex);  // Leave critical section
+        sem_post(&empty);  // Increase the empty slots count
+
+        sleep(2);  // Simulate work
+    }
+}
+
+int main() {
+    srand(time(NULL));  // Initialize random number generator
+
+    // Initialize semaphores
+    sem_init(&empty, 0, BUFFER_SIZE);  // Initially, buffer is empty
+    sem_init(&full, 0, 0);             // Initially, buffer is empty (0 filled)
+    sem_init(&mutex, 0, 1);            // Mutex for mutual exclusion
+
+    // Create producer and consumer threads
+    pthread_t prod, cons;
+    pthread_create(&prod, NULL, producer, NULL);
+    pthread_create(&cons, NULL, consumer, NULL);
+
+    // Wait for the threads to finish (they never will in this infinite loop)
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    // Destroy semaphores
+    sem_destroy(&empty);
+    sem_destroy(&full);
+    sem_destroy(&mutex);
+
+    return 0;
+}
